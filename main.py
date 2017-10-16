@@ -1,6 +1,7 @@
 #export PYTHONPATH=/usr/local/lib/python2.7/site-packages:$PYTHONPATH
 import sys
 import cv2
+import math
 import numpy as np
 
 def read_imagelist(fname, imagelist):
@@ -24,31 +25,49 @@ def extracting_mask(mask_img, mask_position):
 
 #R, G, B -> R/(R+G+B), G/(R+G+B), B/(R+G+B)
 def extracting_feature(features, mask_position, img):
-	features = []
+	color_float = [0,0,0]
 	for i in range(0, len(mask_position)):
 		[l,c] = mask_position[i]
 		color = img[l,c,:]
 		#R, G, B -> R/(R+G+B)
 		mean = int(color[0])+int(color[1])+int(color[2])
 		if mean > 0:
-			color[0] /= mean
-			color[1] /= mean
-			color[2] /= mean
-		features.append(color)
+			color_float[0] = float(color[0]) / float(mean)
+			color_float[1] = float(color[1]) / float(mean)
+			color_float[2] = float(color[2]) / float(mean)
+		features.append(color_float)
 	return;
 
 #creating tensor from mean color vector normalized
 def creating_tensor_series(features, tensor_series):
-		
-	for f in range(0,len(features)):
-		tensor_series.append(features[f]*transpose(features[f]))
-
-	
+	w, h = 3, 3;
+	matrix = [[0 for x in range(w)] for y in range(h)]  
+	for f in range(0,len(features)):	
+		for i in range(0,3):
+			for j in range(0,3):  
+				matrix[i][j] += features[f][i]*features[f][j]
+		tensor_series.append(matrix)	
 	return;
+
 
 #accumulate temporal information 
 def creating_final_tensor(tensor_series, final_tensor):
-	return final_tensor;
+	mean = 0.0
+	for f in range(0,len(tensor_series)):
+		for i in range(0,3):
+                        for j in range(0,3):
+                                final_tensor[i][j] += tensor_series[f][i][j]
+				 
+	for i in range(0,3):
+                for j in range(0,3):
+			mean += final_tensor[i][j]*final_tensor[i][j]
+
+	for i in range(0,3):
+        	for j in range(0,3):
+	                final_tensor[i][j] /= math.sqrt(mean)
+
+	print final_tensor
+	return;
 
 
 #read mask
@@ -71,14 +90,18 @@ extracting_mask(mask_img, mask_position)
 features = []
 tensor_series = []
 
+w, h = 3, 3;
+final_tensor = [[0 for x in range(w)] for y in range(h)]
+
 #extract feature and create tensor
-for i in range(0, 1):
-#for i in range(0,len(imagelist)):
+#for i in range(0, 2):
+for i in range(0,len(imagelist)):
 	print imagelist[i][0:16]
 	img = cv2.imread(imagelist[i][0:16])
 	#extracting colors
 	extracting_feature(features, mask_position, img)
 	#creating tensor from mean color vector normalized
 	creating_tensor_series(features, tensor_series)
-	#accumulate temporal information
-	#creating_final_tensor(tensor_series)
+
+#accumulate temporal information	
+creating_final_tensor(tensor_series, final_tensor)
