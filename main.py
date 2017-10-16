@@ -9,7 +9,8 @@ def read_imagelist(fname, imagelist):
 			imagelist.append(line) 
 	return;
 
-def extracting_mask(mask_img, image, mask_position):
+#extracting position from binary mask
+def extracting_mask(mask_img, mask_position):
 	i = 0
 	j = 0
 	npixels = 0;
@@ -21,13 +22,37 @@ def extracting_mask(mask_img, image, mask_position):
 				mask_position.append([i,j])
 	return;
 
-def extracting_feature(feature, mask_position, img1):
-	feature = [0,0,0]
+#R, G, B -> R/(R+G+B), G/(R+G+B), B/(R+G+B)
+def extracting_feature(features, mask_position, img):
+	features = []
+	for i in range(0, len(mask_position)):
+		[l,c] = mask_position[i]
+		color = img[l,c,:]
+		#R, G, B -> R/(R+G+B)
+		mean = int(color[0])+int(color[1])+int(color[2])
+		if mean > 0:
+			color[0] /= mean
+			color[1] /= mean
+			color[2] /= mean
+		features.append(color)
 	return;
+
+#creating tensor from mean color vector normalized
+def creating_tensor_series(features, tensor_series):
+		
+	for f in range(0,len(features)):
+		tensor_series.append(features[f]*transpose(features[f]))
+
+	
+	return;
+
+#accumulate temporal information 
+def creating_final_tensor(tensor_series, final_tensor):
+	return final_tensor;
+
 
 #read mask
 #read imagelist
-
 mask = str(sys.argv[1])
 images = str(sys.argv[2])
 
@@ -40,16 +65,20 @@ mask_img = cv2.imread(mask)
 imagelist = []
 read_imagelist(images, imagelist)
 
-print imagelist[0][0:16]
-img1 = cv2.imread(imagelist[0][0:16])
-
-#separate mask + image
+#separate mask
 mask_position = []
-extracting_mask(mask_img, img1, mask_position)
+extracting_mask(mask_img, mask_position)
+features = []
+tensor_series = []
 
-#extract feature
-feature = [0,0,0]
-extracting_feature(feature, mask_position, img1)
-#transform feature vector into tensor
-
-#accumulate temporal information 
+#extract feature and create tensor
+for i in range(0, 1):
+#for i in range(0,len(imagelist)):
+	print imagelist[i][0:16]
+	img = cv2.imread(imagelist[i][0:16])
+	#extracting colors
+	extracting_feature(features, mask_position, img)
+	#creating tensor from mean color vector normalized
+	creating_tensor_series(features, tensor_series)
+	#accumulate temporal information
+	#creating_final_tensor(tensor_series)
