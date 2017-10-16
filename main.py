@@ -1,3 +1,4 @@
+#export PYTHONPATH=/usr/local/lib/python2.7/site-packages:$PYTHONPATH
 import sys
 import cv2
 
@@ -22,9 +23,10 @@ maskimg = cv2.imread(mask)
 imagelist = []
 read_imagelist(images, imagelist)
 
-print imagelist[0]
-img1 = cv2.imread(imagelist[0])
+print imagelist[0][0:16]
+img1 = cv2.imread(imagelist[0][0:16])
 cv2.imshow('image', img1)
+
 
 #separate mask + image
 
