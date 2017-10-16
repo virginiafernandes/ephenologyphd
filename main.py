@@ -9,22 +9,21 @@ def read_imagelist(fname, imagelist):
 			imagelist.append(line) 
 	return;
 
-def extracting_mask(new_img, mask_img, image):
-	x = 0
+def extracting_mask(mask_img, image, mask_position):
 	i = 0
 	j = 0
+	npixels = 0;
 	[a, b, c] = mask_img.shape
-	mask_position =[]
 	for i in range(0, a):
 		for j in range(0,b):
 			color = mask_img[i,j,:]
 			if color[0] == 255:
 				mask_position.append([i,j])
-				x += 1
-	#new_img = cv2.resize(new_img, (x, y))
-	#new_img = imwrite('testing.jpg', new_img)
 	return;
 
+def extracting_feature(feature, mask_position, img1):
+	feature = [0,0,0]
+	return;
 
 #read mask
 #read imagelist
@@ -35,23 +34,22 @@ images = str(sys.argv[2])
 print 'Working on mask', mask
 print 'Working on observations', images
 
-maskimg = cv2.imread(mask)
-#cv2.imshow('image', maskimg)
+mask_img = cv2.imread(mask)
+#cv2.imshow('image', mask_img)
 
 imagelist = []
 read_imagelist(images, imagelist)
 
 print imagelist[0][0:16]
 img1 = cv2.imread(imagelist[0][0:16])
-#cv2.imshow('image', img1)
 
 #separate mask + image
-new_img = cv2.imread('testing.jpg')
-extracting_mask(new_img, maskimg, img1)
-
+mask_position = []
+extracting_mask(mask_img, img1, mask_position)
 
 #extract feature
-
+feature = [0,0,0]
+extracting_feature(feature, mask_position, img1)
 #transform feature vector into tensor
 
 #accumulate temporal information 
