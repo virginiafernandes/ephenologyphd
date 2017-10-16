@@ -1,8 +1,9 @@
-
+import sys
 
 #read mask
-
 #read image
+
+
 
 #separate mask + image
 
