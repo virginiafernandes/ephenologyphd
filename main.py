@@ -43,9 +43,19 @@ def creating_tensor_series(features, tensor_series):
 	w, h = 3, 3;
 	matrix = [[0 for x in range(w)] for y in range(h)]  
 	for f in range(0,len(features)):	
+		mean = 0.0
 		for i in range(0,3):
 			for j in range(0,3):  
 				matrix[i][j] += features[f][i]*features[f][j]
+		#normalizing l2
+		for k in range(0,3):
+                	for l in range(0,3):
+                        	mean += matrix[k][l]*matrix[k][l]
+
+        	for k in range(0,3):
+                	for l in range(0,3):
+                        	matrix[k][l] /= math.sqrt(mean)
+
 		tensor_series.append(matrix)	
 	return;
 
