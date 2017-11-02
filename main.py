@@ -15,7 +15,6 @@ def read_imagelist(fname, imagelist):
 def extracting_mask(mask_img, mask_position):
 	i = 0
 	j = 0
-	npixels = 0;
 	[a, b, c] = mask_img.shape
 	for i in range(0, a):
 		for j in range(0,b):
