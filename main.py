@@ -3,6 +3,7 @@ import sys
 import cv2
 import math
 import numpy as np
+import struct
 
 def read_imagelist(fname, imagelist):
 	with open(fname, 'r') as f:
@@ -25,7 +26,7 @@ def extracting_mask(mask_img, mask_position):
 
 #R, G, B -> R/(R+G+B), G/(R+G+B), B/(R+G+B)
 def extracting_feature(features, mask_position, img):
-	color_float = [0,0,0]
+	color_float = [0.0,0.0,0.0]
 	for i in range(0, len(mask_position)):
 		[l,c] = mask_position[i]
 		color = img[l,c,:]
@@ -42,6 +43,11 @@ def extracting_feature(features, mask_position, img):
 def creating_tensor_series(features, tensor_series):
 	w, h = 3, 3;
 	matrix = [[0 for x in range(w)] for y in range(h)]  
+
+	for i in range(0,3):
+		for j in range(0,3):
+			matrix[i][j] = 0.0
+
 	for f in range(0,len(features)):	
 		mean = 0.0
 		for i in range(0,3):
@@ -61,8 +67,17 @@ def creating_tensor_series(features, tensor_series):
 
 
 #accumulate temporal information 
-def creating_final_tensor(tensor_series, final_tensor):
+def creating_final_tensor(tensor_series, final_tensor, mask, year):
+	mask = mask + year + ".tensor"
+	print mask
+	file = open(mask, "w")
 	mean = 0.0
+
+	for i in range(0,3):
+		for j in range(0,3):
+			final_tensor[i][j] = 0.0
+			
+	
 	for f in range(0,len(tensor_series)):
 		for i in range(0,3):
                         for j in range(0,3):
@@ -75,7 +90,14 @@ def creating_final_tensor(tensor_series, final_tensor):
 	for i in range(0,3):
         	for j in range(0,3):
 	                final_tensor[i][j] /= math.sqrt(mean)
+			file.write(str(final_tensor[i][j]) + ' ')
+		file.write('\n')
 
+
+	#s = struct.pack('d'*len(final_tensor), *final_tensor)
+	#file.write(final_tensor)
+	
+	file.close()
 	print final_tensor
 	return;
 
@@ -84,6 +106,7 @@ def creating_final_tensor(tensor_series, final_tensor):
 #read imagelist
 mask = str(sys.argv[1])
 images = str(sys.argv[2])
+year = str(sys.argv[3])
 
 print 'Working on mask', mask
 print 'Working on observations', images
@@ -114,4 +137,4 @@ for i in range(0,len(imagelist)):
 	creating_tensor_series(features, tensor_series)
 
 #accumulate temporal information	
-creating_final_tensor(tensor_series, final_tensor)
+creating_final_tensor(tensor_series, final_tensor, mask,year)
