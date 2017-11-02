@@ -128,8 +128,9 @@ final_tensor = [[0 for x in range(w)] for y in range(h)]
 #extract feature and create tensor
 #for i in range(0, 2):
 for i in range(0,len(imagelist)):
-	print imagelist[i][0:16]
-	img = cv2.imread(imagelist[i][0:16])
+	print imagelist[i]
+	pos = imagelist[i].index('\n')
+	img = cv2.imread(imagelist[i][0:pos])
 	#extracting colors
 	extracting_feature(features, mask_position, img)
 	#creating tensor from mean color vector normalized
