@@ -1,9 +1,16 @@
-
 import sys
 import math
+import numpy as np
+import struct
 
-def l2_distance(distance, tensor1, tensor2):
-	
+def read_list(fname, treenameslist):
+	with open(fname, 'r') as f:
+		for line in f:
+			treenameslist.append(line)
+	return;
+
+def l2_distance(tensor1, tensor2):
+	distance = 0.0	
 	for i in range(0,3):
 		for j in range(0,3):
 			distance += (tensor1[i][j]-tensor2[i][j])*(tensor1[i][j]-tensor2[i][j])
@@ -12,23 +19,22 @@ def l2_distance(distance, tensor1, tensor2):
 	print distance
 	return;
 
-distance = 0
-#no normalization on intermediate tensors
-#tensor1 = [[0.29272641838995156, 0.3162291220202569, 0.32715111278619763], [0.3162291220202569, 0.3416346059626301, 0.3534345209665934], [0.32715111278619763, 0.3534345209665934, 0.3656606382175679]]
-#tensor2 = [[0.3349070137560781, 0.3341163465669872, 0.33331647084164523], [0.3341163465669872, 0.3333552245672337, 0.3325490372302122], [0.33331647084164523, 0.3325490372302122, 0.3317629522867682]]
-#tensor3 = [[0.2736673843078452, 0.3028133211906352, 0.3272098783286145], [0.3028133211906352, 0.3350869331976601, 0.36208095963347375], [0.3272098783286145, 0.36208095963347375, 0.3912713168319852]] 
+#tensor from each images are normalized. Then, its summation is also normalized.
 
-#intermetiate tensors normalized
-tensor1 = [[0.2934392178950968, 0.31604312081210884, 0.32777507227977154], [0.31604312081210884, 0.34041244786802244, 0.3530512405717642], [0.32777507227977154, 0.3530512405717642, 0.3661733597051513]]
-tensor2 = [[0.33471464156099867, 0.33343820875874136, 0.33389837663726085], [0.33343820875874136, 0.3321945522964275, 0.33264282388251165], [0.33389837663726085, 0.33264282388251165, 0.33312469380958964]]
-tensor3 = [[0.2749133164992469, 0.3031201015451359, 0.3277908024274305], [0.3031201015451359, 0.33423847524946665, 0.3614360680297543], [0.3277908024274305, 0.3614360680297543, 0.39086830940250683]]
+fname = str(sys.argv[1]) #list of tensors for each mask
+
+w,h = 3,3
+tensor1 = [[0 for x in range(w)] for y in range(h)]
+tensor2 = [[0 for x in range(w)] for y in range(h)]
+treenameslist = []
+
+read_list(fname, treenameslist)
+
+for i in range(0, len(treenameslist)):
+	pos = treenameslist[i].index('\n')
+	tree_name = treenameslist[i][0:pos]
+	print tree_name
 
 print 't1,t2'
-l2_distance(distance, tensor1, tensor2)
-
-print 't1,t3'
-l2_distance(distance, tensor1, tensor3)
-
-print 't2,t3'
-l2_distance(distance, tensor2, tensor3)
+l2_distance(tensor1, tensor2)
 
