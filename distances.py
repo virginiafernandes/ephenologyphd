@@ -4,8 +4,9 @@ import numpy as np
 import struct
 
 class Tree:
-	name = ''
-	tensor=[[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,0.0,0.0]]
+	def __init__(self,name, tensor):
+		self.name = name
+		self.tensor = tensor
 
 
 def read_list(fname, treenameslist):
@@ -29,27 +30,31 @@ def l2_distance(tensor1, tensor2):
 fname = str(sys.argv[1]) #list of file of tensors for each mask
 treenameslist = []#list of masks names
 treetensors = []#list of tensors
+w, h = 3, 3;
+tensor = [[0 for x in range(w)] for y in range(h)]
 
 read_list(fname, treenameslist)
 
-for i in range(0, 2):#len(treenameslist)):
+for i in range(0,len(treenameslist)):
 	#getting name
 	pos = treenameslist[i].index('\n')
 	tree_name = treenameslist[i][0:pos]
-	tree = Tree()
-	tree.name = tree_name
 	#getting tensor
-	with open(tree.name, 'r') as f:
+	with open(tree_name, 'r') as f:
 		s = f.read()
+	f.close()
 	s = s.split()
 	pos = 0
 	for a in range(0,3):
 		for b in range(0,3):
-			tree.tensor[a][b] = float(s[pos])
-			pos = pos + 1		
+			tensor[a][b] = float(s[pos])
+			pos = pos + 1
 	#saving tree
+	tree = Tree(tree_name, tensor)
 	treetensors.append(tree)
-
-for i in range(0, len(treetensors)):
 	print treetensors[i].name
 	print treetensors[i].tensor
+
+
+
+
