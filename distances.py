@@ -38,7 +38,7 @@ for i in range(0, 2):#len(treenameslist)):
 	tree_name = treenameslist[i][0:pos]
 	tree = Tree()
 	tree.name = tree_name
-	#gettin tensor
+	#getting tensor
 	with open(tree.name, 'r') as f:
 		s = f.read()
 	s = s.split()
@@ -51,5 +51,5 @@ for i in range(0, 2):#len(treenameslist)):
 	treetensors.append(tree)
 
 for i in range(0, len(treetensors)):
-	#print treetensors[i].name
+	print treetensors[i].name
 	print treetensors[i].tensor
