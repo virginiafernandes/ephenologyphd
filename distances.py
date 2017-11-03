@@ -3,6 +3,11 @@ import math
 import numpy as np
 import struct
 
+class Tree:
+	name = ''
+	tensor=[[0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,0.0,0.0]]
+
+
 def read_list(fname, treenameslist):
 	with open(fname, 'r') as f:
 		for line in f:
@@ -21,20 +26,30 @@ def l2_distance(tensor1, tensor2):
 
 #tensor from each images are normalized. Then, its summation is also normalized.
 
-fname = str(sys.argv[1]) #list of tensors for each mask
-
-w,h = 3,3
-tensor1 = [[0 for x in range(w)] for y in range(h)]
-tensor2 = [[0 for x in range(w)] for y in range(h)]
-treenameslist = []
+fname = str(sys.argv[1]) #list of file of tensors for each mask
+treenameslist = []#list of masks names
+treetensors = []#list of tensors
 
 read_list(fname, treenameslist)
 
-for i in range(0, len(treenameslist)):
+for i in range(0, 2):#len(treenameslist)):
+	#getting name
 	pos = treenameslist[i].index('\n')
 	tree_name = treenameslist[i][0:pos]
-	print tree_name
+	tree = Tree()
+	tree.name = tree_name
+	#gettin tensor
+	with open(tree.name, 'r') as f:
+		s = f.read()
+	s = s.split()
+	pos = 0
+	for a in range(0,3):
+		for b in range(0,3):
+			tree.tensor[a][b] = float(s[pos])
+			pos = pos + 1		
+	#saving tree
+	treetensors.append(tree)
 
-print 't1,t2'
-l2_distance(tensor1, tensor2)
-
+for i in range(0, len(treetensors)):
+	#print treetensors[i].name
+	print treetensors[i].tensor
