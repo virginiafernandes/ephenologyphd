@@ -31,7 +31,6 @@ fname = str(sys.argv[1]) #list of file of tensors for each mask
 treenameslist = []#list of masks names
 treetensors = []#list of tensors
 w, h = 3, 3;
-tensor = [[0 for x in range(w)] for y in range(h)]
 
 read_list(fname, treenameslist)
 
@@ -45,6 +44,7 @@ for i in range(0,len(treenameslist)):
 	f.close()
 	s = s.split()
 	pos = 0
+	tensor = [[0 for x in range(w)] for y in range(h)]
 	for a in range(0,3):
 		for b in range(0,3):
 			tensor[a][b] = float(s[pos])
