@@ -4,7 +4,7 @@ import numpy as np
 import struct
 
 class Tree:
-	def __init__(self,name, tensor):
+	def __init__(self, name, tensor):
 		self.name = name
 		self.tensor = tensor
 
@@ -51,10 +51,8 @@ for i in range(0,len(treenameslist)):
 			pos = pos + 1
 	#saving tree
 	tree = Tree(tree_name, tensor)
-	treetensors.append(tree)
-	print treetensors[i].name
-	print treetensors[i].tensor
+	treetensors.append(tree)	
 
-
-
-
+for i in range(0, len(treetensors)):
+	print treetensors[0].name + ' ' + treetensors[i].name
+	l2_distance(treetensors[0].tensor, treetensors[i].tensor)
