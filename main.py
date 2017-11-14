@@ -126,8 +126,8 @@ w, h = 3, 3;
 final_tensor = [[0 for x in range(w)] for y in range(h)]
 
 #extract feature and create tensor
-for i in range(0, 100):
-#for i in range(0,len(imagelist)):
+#for i in range(0, 100):
+for i in range(0,len(imagelist)):
 	print imagelist[i]
 	pos = imagelist[i].index('\n')
 	img = cv2.imread(imagelist[i][0:pos])
