@@ -5,6 +5,9 @@ import math
 import numpy as np
 import struct
 
+from joblib import Parallel, delayed
+
+
 def read_imagelist(fname, imagelist):
 	with open(fname, 'r') as f:
 		for line in f:
@@ -56,11 +59,11 @@ def creating_tensor_series(features, tensor_series):
 		for k in range(0,3):
                 	for l in range(0,3):
                         	mean += matrix[k][l]*matrix[k][l]
-
+		
         	for k in range(0,3):
                 	for l in range(0,3):
                         	matrix[k][l] /= math.sqrt(mean)
-
+		
 		tensor_series.append(matrix)	
 	return;
 
@@ -81,11 +84,12 @@ def creating_final_tensor(tensor_series, final_tensor, mask, year):
 		for i in range(0,3):
                         for j in range(0,3):
                                 final_tensor[i][j] += tensor_series[f][i][j]
-				 
+	
+	#normalizing with l2			 
 	for i in range(0,3):
                 for j in range(0,3):
 			mean += final_tensor[i][j]*final_tensor[i][j]
-
+	
 	for i in range(0,3):
         	for j in range(0,3):
 	                final_tensor[i][j] /= math.sqrt(mean)
@@ -100,6 +104,14 @@ def creating_final_tensor(tensor_series, final_tensor, mask, year):
 	print final_tensor
 	return;
 
+def process(imagelist, i, features, mask_position, tensor_series):
+	print imagelist[i]
+	pos = imagelist[i].index('\n')
+	img = cv2.imread(imagelist[i][0:pos])
+	#extracting colors
+	extracting_feature(features, mask_position, img)
+	#creating tensor from mean color vector normalized
+	creating_tensor_series(features, tensor_series)
 
 #read mask
 #read imagelist
@@ -117,24 +129,19 @@ imagelist = []
 read_imagelist(images, imagelist)
 
 #separate mask
-mask_position = []
+mask_position = [] 
 extracting_mask(mask_img, mask_position)
-features = []
+features = [] 
 tensor_series = []
 
 w, h = 3, 3;
 final_tensor = [[0 for x in range(w)] for y in range(h)]
 
 #extract feature and create tensor
-#for i in range(0, 2):
-for i in range(0,len(imagelist)):
-	print imagelist[i]
-	pos = imagelist[i].index('\n')
-	img = cv2.imread(imagelist[i][0:pos])
-	#extracting colors
-	extracting_feature(features, mask_position, img)
-	#creating tensor from mean color vector normalized
-	creating_tensor_series(features, tensor_series)
+#for i in range(0, 100):
+#for i in range(0,len(imagelist)):
+#	process(imagelist, i, features, mask_position, tensor_series)
+Parallel(n_jobs=4)(delayed(process)(imagelist, i, features, mask_position, tensor_series) for i in range(len(imagelist)))
 
 #accumulate temporal information	
 creating_final_tensor(tensor_series, final_tensor, mask,year)
