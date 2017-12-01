@@ -4,6 +4,7 @@ import cv2
 import math
 import numpy as np
 import struct
+import pickle 
 
 from joblib import Parallel, delayed
 
@@ -24,7 +25,7 @@ def extracting_mask(mask_img, mask_position):
 			color = mask_img[i,j,:]
 			if color[0] == 255:
 				mask_position.append([i,j])
-	return;
+	return mask_position;
 
 #R, G, B -> R/(R+G+B), G/(R+G+B), B/(R+G+B)
 def extracting_feature(features, mask_position, img):
@@ -39,7 +40,7 @@ def extracting_feature(features, mask_position, img):
 			color_float[1] = float(color[1]) / float(mean)
 			color_float[2] = float(color[2]) / float(mean)
 		features.append(color_float)
-	return;
+	return features;
 
 #creating tensor from mean color vector normalized
 def creating_tensor_series(features, tensor_series):
@@ -64,8 +65,10 @@ def creating_tensor_series(features, tensor_series):
                 	for l in range(0,3):
                         	matrix[k][l] /= math.sqrt(mean)
 		
-		tensor_series.append(matrix)	
-	return;
+		tensor_series.append(matrix)
+		with open('tensor_series.pkl', 'wb') as f:
+			pickle.dump(tensor_series, f)
+	return tensor_series;
 
 
 #accumulate temporal information 
@@ -78,12 +81,14 @@ def creating_final_tensor(tensor_series, final_tensor, mask, year):
 	for i in range(0,3):
 		for j in range(0,3):
 			final_tensor[i][j] = 0.0
-			
 	
-	for f in range(0,len(tensor_series)):
+	with open('tensor_series.pkl', 'rb') as f:
+		series = pickle.load(f)
+		
+	for f in range(0,len(series)):
 		for i in range(0,3):
                         for j in range(0,3):
-                                final_tensor[i][j] += tensor_series[f][i][j]
+                                final_tensor[i][j] += series[f][i][j] #tensor_series[f][i][j]
 	
 	#normalizing with l2			 
 	for i in range(0,3):
@@ -127,6 +132,8 @@ mask_img = cv2.imread(mask)
 
 imagelist = []
 read_imagelist(images, imagelist)
+
+print len(imagelist)
 
 #separate mask
 mask_position = [] 
