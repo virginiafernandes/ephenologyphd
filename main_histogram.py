@@ -23,51 +23,63 @@ def extracting_mask(mask_img, mask_position):
 				mask_position.append([i,j])
 	return;
 
+
 #R, G, B -> R/(R+G+B), G/(R+G+B), B/(R+G+B)
 def extracting_feature(features, mask_position, img):
-	color_float = [0.0,0.0,0.0]
-	for i in range(0, len(mask_position)):
-		[l,c] = mask_position[i]
-		color = img[l,c,:]
-		#R, G, B -> R/(R+G+B)
-		mean = int(color[0])+int(color[1])+int(color[2])
-		if mean > 0:
-			color_float[0] = float(color[0]) / float(mean)
-			color_float[1] = float(color[1]) / float(mean)
-			color_float[2] = float(color[2]) / float(mean)
-		features.append(color_float)
-	return;
+        color_float = [0.0,0.0,0.0]
+        for i in range(0, len(mask_position)):
+                [l,c] = mask_position[i]
+                color = img[l,c,:]
+                #R, G, B -> R/(R+G+B)
+                mean = int(color[0])+int(color[1])+int(color[2])
+                if mean > 0:
+                        color_float[0] = float(color[0]) / float(mean)
+                        color_float[1] = float(color[1]) / float(mean)
+                        color_float[2] = float(color[2]) / float(mean)
+                features.append(color_float)
+        return;
 
-#creating tensor from mean color vector normalized
+#creating tensor from histogram color vector normalized by number of pixels
 def creating_tensor_series(features, tensor_series):
 	w, h = 3, 3;
 	matrix = [[0 for x in range(w)] for y in range(h)]  
+	colors = [0.0,0.0,0.0]
 
 	for i in range(0,3):
 		for j in range(0,3):
 			matrix[i][j] = 0.0
 
-	for f in range(0,len(features)):	
-		mean = 0.0
+	#creating histogram
+	for f in range(0, len(features)):
 		for i in range(0,3):
-			for j in range(0,3):  
-				matrix[i][j] += features[f][i]*features[f][j]
-		#normalizing l2
-		for k in range(0,3):
-                	for l in range(0,3):
-                        	mean += matrix[k][l]*matrix[k][l]
-		
+			colors[i] += features[f][i]
+	
+	#normalizing by pixel number
+      	#for i in range(0,3):
+        #	colors[i] = float(colors[i]) / float(len(features))
+
+	#creating tensor from histogram mask	
+	mean = 0.0
+	for i in range(0,3):
+		for j in range(0,3):  
+			matrix[i][j] += colors[i]*colors[j]
+	
+	#normalizing l2
+	for k in range(0,3):
+                for l in range(0,3):
+                        mean += matrix[k][l]*matrix[k][l]
+	if (mean > 0.0):		
         	for k in range(0,3):
                 	for l in range(0,3):
                         	matrix[k][l] /= math.sqrt(mean)
 		
-		tensor_series.append(matrix)	
+	tensor_series.append(matrix)	
 	return;
 
 
 #accumulate temporal information 
 def creating_final_tensor(tensor_series, final_tensor, mask, year):
-	mask = mask + year + ".tensor"
+	mask = mask + year + ".histtensor"
 	print mask
 	file = open(mask, "w")
 	mean = 0.0
@@ -76,7 +88,7 @@ def creating_final_tensor(tensor_series, final_tensor, mask, year):
 		for j in range(0,3):
 			final_tensor[i][j] = 0.0
 			
-	print len(tensor_series)	
+	
 	for f in range(0,len(tensor_series)):
 		for i in range(0,3):
                         for j in range(0,3):
@@ -89,7 +101,8 @@ def creating_final_tensor(tensor_series, final_tensor, mask, year):
 	
 	for i in range(0,3):
         	for j in range(0,3):
-	                final_tensor[i][j] /= math.sqrt(mean)
+	                if (mean > 0.0):
+				final_tensor[i][j] /= math.sqrt(mean)
 			file.write(str(final_tensor[i][j]) + ' ')
 		file.write('\n')
 
@@ -134,7 +147,7 @@ for i in range(0,len(imagelist)):
 	img = cv2.imread(imagelist[i][0:pos])
 	#extracting colors
 	extracting_feature(features, mask_position, img)
-	#creating tensor from mean color vector normalized
+	#creating tensor from histogram color vector normalized
 	creating_tensor_series(features, tensor_series)
 
 #accumulate temporal information	

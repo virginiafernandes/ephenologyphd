@@ -76,7 +76,7 @@ def creating_tensor_series(features, tensor_series, name_img):
 	name_img2 = name_img.split('/')
 	name_file = 'tensor_from' + name_img2[3] + '.pkl'
 	with open(name_file, 'wb') as file:
-		pickle.dump(tensor_series, file)
+		pickle.dump({'tensor_series': tensor_series}, file)
 	
 	return tensor_series;
 
@@ -98,16 +98,14 @@ def creating_final_tensor(tensor_series, final_tensor, mask, year, listpickle):
 		for line in l:
 			pos = line.index('\n')
                         with open(line[0:pos], 'rb') as t:
-				series.append(pickle.load(t))
+				series.append(pickle.load(t)['tensor_series'])
 
-	print len(series)
-	print series 
+	print len(series) 
 
 	for f in range(0,len(series)):
-		h = 0
 		for i in range(0,3):
                         for j in range(0,3):
-                                final_tensor[i][j] += series[f][i][j] #tensor_series[f][i][j]
+                                final_tensor[i][j] += float(series[f][i][j]) #tensor_series[f][i][j]
 	
 	#normalizing with l2			 
 	for i in range(0,3):

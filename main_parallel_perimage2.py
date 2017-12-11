@@ -43,38 +43,46 @@ def extracting_feature(features, mask_position, img):
 	return features;
 
 #creating tensor from mean color vector normalized
-def creating_tensor_series(features, tensor_series):
+def creating_tensor_series(features, tensor_series, name_img):
 	w, h = 3, 3;
 	matrix = [[0 for x in range(w)] for y in range(h)]  
+	matrix2 = [[0 for x in range(w)] for y in range(h)]
 
 	for i in range(0,3):
 		for j in range(0,3):
 			matrix[i][j] = 0.0
-	
-	for f in range(0,len(features)):	
-		mean = 0.0
+			matrix2[i][j] = 0.0	
+
+	for f in range(0,len(features)):
 		for i in range(0,3):
 			for j in range(0,3):  
 				matrix[i][j] += features[f][i]*features[f][j]
-		#normalizing l2
-		for k in range(0,3):
-                	for l in range(0,3):
-                        	mean += matrix[k][l]*matrix[k][l]
-		
-        	for k in range(0,3):
-                	for l in range(0,3):
-                        	matrix[k][l] /= math.sqrt(mean)
-		
-		tensor_series.append(matrix)
+		for i in range(0,3):
+                        for j in range(0,3):
+                                matrix2[i][j] += matrix[i][j]
 	
-	with open('tensor_series.pkl', 'wb') as file:
-		pickle.dump(tensor_series, file)
+	#normalizing l2 - each image has a tensor
+	mean = 0.0
+	for i in range(0,3):
+               	for j in range(0,3):
+                       	mean += matrix2[i][j]*matrix2[i][j]
+		
+        for i in range(0,3):
+               	for j in range(0,3):
+                       	matrix2[i][j] /= math.sqrt(mean)
+		
+	tensor_series.append(matrix2)
+	
+	name_img2 = name_img.split('/')
+	name_file = 'tensor_from' + name_img2[3] + '.pkl'
+	with open(name_file, 'wb') as file:
+		pickle.dump({'tensor_series': tensor_series}, file)
 	
 	return tensor_series;
 
 
 #accumulate temporal information 
-def creating_final_tensor(tensor_series, final_tensor, mask, year):
+def creating_final_tensor(tensor_series, final_tensor, mask, year, listpickle):
 	mask = mask + year + ".tensor"
 	print mask
 	file = open(mask, "w")
@@ -84,13 +92,29 @@ def creating_final_tensor(tensor_series, final_tensor, mask, year):
 		for j in range(0,3):
 			final_tensor[i][j] = 0.0
 	
-	with open('tensor_series.pkl', 'rb') as t:
-		series = pickle.load(t)
-		
+	i = 0
+	series = []
+	with open(listpickle, 'r') as l:
+		for line in l:
+			pos = line.index('\n')
+                        with open(line[0:pos], 'rb') as t:
+				series.append(pickle.load(t)['tensor_series'])
+
+	print len(series)
+	#series = np.asarray(series, dtype=np.float)
+
 	for f in range(0,len(series)):
-		for i in range(0,3):
-                        for j in range(0,3):
-                                final_tensor[i][j] += series[f][i][j] #tensor_series[f][i][j]
+		ser = np.asarray(series[f], dtype=np.float)
+        
+        if ser.shape >= 3:
+    		final_tensor += np.sum(ser, axis=0)
+    	else:
+    	    final_tensor += ser
+	    
+		#for i in range(0,3):
+        #                for j in range(0,3):
+        #                        print(type(series[f][i][j]))
+        #                        final_tensor[i][j] += series[f][i][j] #tensor_series[f][i][j]
 	
 	#normalizing with l2			 
 	for i in range(0,3):
@@ -102,10 +126,6 @@ def creating_final_tensor(tensor_series, final_tensor, mask, year):
 	                final_tensor[i][j] /= math.sqrt(mean)
 			file.write(str(final_tensor[i][j]) + ' ')
 		file.write('\n')
-
-
-	#s = struct.pack('d'*len(final_tensor), *final_tensor)
-	#file.write(final_tensor)
 	
 	file.close()
 	print final_tensor
@@ -118,13 +138,14 @@ def process(imagelist, i, features, mask_position, tensor_series):
 	#extracting colors
 	extracting_feature(features, mask_position, img)
 	#creating tensor from mean color vector normalized
-	creating_tensor_series(features, tensor_series)
+	creating_tensor_series(features, tensor_series,imagelist[i][0:pos])
 
 #read mask
 #read imagelist
 mask = str(sys.argv[1])
 images = str(sys.argv[2])
 year = str(sys.argv[3])
+listpickle = str(sys.argv[4])
 
 print 'Working on mask', mask
 print 'Working on observations', images
@@ -144,7 +165,7 @@ features = []
 tensor_series = []
 
 w, h = 3, 3;
-final_tensor = [[0 for x in range(w)] for y in range(h)]
+final_tensor = np.asarray([[0 for x in range(w)] for y in range(h)], dtype=np.float)
 
 #extract feature and create tensor
 #for i in range(0, 100):
@@ -153,4 +174,4 @@ final_tensor = [[0 for x in range(w)] for y in range(h)]
 Parallel(n_jobs=4)(delayed(process)(imagelist, i, features, mask_position, tensor_series) for i in range(len(imagelist)))
 
 #accumulate temporal information	
-creating_final_tensor(tensor_series, final_tensor, mask,year)
+creating_final_tensor(tensor_series, final_tensor, mask,year, listpickle)
