@@ -5,6 +5,8 @@ import math
 import numpy as np
 import struct
 import pickle 
+import colorsys
+
 
 from joblib import Parallel, delayed
 
@@ -37,6 +39,7 @@ def extracting_mask(mask_img):
 #R, G, B -> R/(R+G+B), G/(R+G+B), B/(R+G+B)
 def extracting_feature(img, mask_position):
 
+
     features = list()
     color_float = [0.0, 0.0, 0.0]
     
@@ -44,15 +47,18 @@ def extracting_feature(img, mask_position):
     
         [l,c] = mask_position[i]
         color = img[l,c,:]
-        
+
+	#color = colorsys.rgb_to_yiq(color1[0], color1[1], color1[2])     
+
+   
         #R, G, B -> R/(R+G+B)
         mean = int(color[0])+int(color[1])+int(color[2])
         
         if mean > 0:
         
-            color_float[0] = float(color[0]) / float(mean)
-            color_float[1] = float(color[1]) / float(mean)
-            color_float[2] = float(color[2]) / float(mean)
+            color_float[0] = 0.8 * (float(color[0]) / float(mean))
+            color_float[1] = 1.0 * (float(color[1]) / float(mean))
+            color_float[2] = 0.5 * (float(color[2]) / float(mean))
             
         features.append(color_float)
         
@@ -80,7 +86,7 @@ def creating_tensor_series(features, tensor_series, name_img):
     for i in range(0, 3):
         for j in range(0, 3):
             mean += matrix2[i][j] * matrix2[i][j]
-        
+    
     for i in range(0,3):
         for j in range(0,3):
             matrix2[i][j] /= math.sqrt(mean)
